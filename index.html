@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TeleVault — Encrypted Cloud Storage</title>
+<meta name="description" content="Free, encrypted cloud storage powered by Telegram. End-to-end encrypted, accessible anywhere.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Inter',system-ui,sans-serif}
+[data-theme="dark"]{--bg:#07080a;--bg2:#0f1117;--bg3:#161922;--bg4:#1c2030;--bd:#262b3a;--tx:#e8ecf4;--tx2:#9da5b8;--tx3:#636d83;--accent:#6c5ce7;--accent2:#a78bfa;--accentG:linear-gradient(135deg,#6c5ce7,#a78bfa,#818cf8);--green:#34d399;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--glass:rgba(15,17,23,.75);--glass2:rgba(22,25,34,.85);--sh:0 8px 32px rgba(0,0,0,.4);--sh2:0 2px 8px rgba(0,0,0,.3);--glow:0 0 20px rgba(108,92,231,.15)}
+[data-theme="light"]{--bg:#f0f2f7;--bg2:#ffffff;--bg3:#f7f8fc;--bg4:#edf0f7;--bd:#d5dae6;--tx:#1a1e2e;--tx2:#5a6478;--tx3:#8892a6;--accent:#6c5ce7;--accent2:#7c6ef0;--accentG:linear-gradient(135deg,#6c5ce7,#a78bfa,#818cf8);--green:#059669;--red:#dc2626;--yellow:#d97706;--blue:#2563eb;--glass:rgba(255,255,255,.8);--glass2:rgba(247,248,252,.9);--sh:0 4px 16px rgba(0,0,0,.06);--sh2:0 1px 4px rgba(0,0,0,.04);--glow:0 0 20px rgba(108,92,231,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:var(--bg);color:var(--tx);font-family:var(--font);min-height:100vh;overflow-x:hidden;line-height:1.5}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--tx3)}
+::selection{background:rgba(108,92,231,.3);color:var(--tx)}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+button{font-family:var(--font)}
+/* ═══ ANIMATIONS ═══ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px rgba(108,92,231,.2)}50%{box-shadow:0 0 20px rgba(108,92,231,.4)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.fade-in{animation:fadeIn .4s ease-out}
+.slide-up{animation:slideUp .5s ease-out}
+/* ═══ BUTTONS ═══ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;white-space:nowrap;letter-spacing:.01em}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--accentG);color:#fff;box-shadow:0 4px 15px rgba(108,92,231,.3)}
+.btn-primary:hover:not(:disabled){box-shadow:0 6px 20px rgba(108,92,231,.4)}
+.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}.btn-ghost:hover{background:var(--bg3);border-color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+.btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--bg3);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;transition:all .2s;font-size:15px}
+.btn-icon:hover{background:var(--bg4);color:var(--tx);border-color:var(--accent)}
+/* ═══ INPUTS ═══ */
+.input{width:100%;background:var(--bg3);border:1.5px solid var(--bd);color:var(--tx);padding:10px 14px;border-radius:10px;font-size:13px;font-family:var(--font);outline:none;transition:all .2s}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,92,231,.12)}
+.input::placeholder{color:var(--tx3)}
+.input-group{margin-bottom:16px}
+.input-group label{display:block;font-size:11px;color:var(--tx2);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.input-pw{position:relative}.input-pw input{padding-right:40px}
+.input-pw .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);background:none;border:none;font-size:16px;padding:0}
+/* ═══ CARDS ═══ */
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:20px;box-shadow:var(--sh2);transition:all .2s}
+.card:hover{box-shadow:var(--sh)}
+.glass-card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;box-shadow:var(--sh)}
+/* ═══ SETUP & UNLOCK SCREENS ═══ */
+.auth-screen{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:var(--bg);overflow-y:auto}
+.auth-bg{position:absolute;inset:0;overflow:hidden;z-index:0}
+.auth-bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.15;animation:float 8s ease-in-out infinite}
+.auth-bg .orb1{width:400px;height:400px;background:#6c5ce7;top:-100px;right:-100px;animation-delay:0s}
+.auth-bg .orb2{width:300px;height:300px;background:#a78bfa;bottom:-50px;left:-50px;animation-delay:2s}
+.auth-bg .orb3{width:200px;height:200px;background:#818cf8;top:50%;left:60%;animation-delay:4s}
+.auth-box{position:relative;z-index:1;background:var(--glass2);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:36px 32px;width:100%;max-width:420px;box-shadow:var(--sh),var(--glow);animation:slideUp .6s ease-out}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-icon{font-size:48px;display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+.auth-logo-title{font-size:24px;font-weight:800;background:var(--accentG);background-size:200% 200%;animation:gradientShift 3s ease infinite;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-logo-sub{font-size:12px;color:var(--tx3);margin-top:4px;letter-spacing:.3px}
+.auth-divider{height:1px;background:linear-gradient(90deg,transparent,var(--bd),transparent);margin:20px 0}
+.auth-footer{text-align:center;font-size:11px;color:var(--tx3);margin-top:16px;line-height:1.7}
+.strength-bar{height:4px;border-radius:2px;background:var(--bg4);margin-top:6px;overflow:hidden}
+.strength-fill{height:100%;border-radius:2px;transition:all .3s}
+.step-dots{display:flex;justify-content:center;gap:8px;margin-bottom:24px}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--bd);transition:all .3s}
+.step-dot.active{background:var(--accent);box-shadow:0 0 8px rgba(108,92,231,.4);width:24px;border-radius:4px}
+.step-dot.done{background:var(--green)}
+/* ═══ TOPBAR ═══ */
+.topbar{height:56px;background:var(--glass2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bd);padding:0 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200}
+.topbar-logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.topbar-logo span:first-child{font-size:20px}
+.topbar-logo span:last-child{font-size:15px;font-weight:800;background:var(--accentG);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.topbar-search{flex:1;max-width:400px;position:relative}
+.topbar-search input{width:100%;background:var(--bg3);border:1px solid var(--bd);color:var(--tx);padding:8px 12px 8px 34px;border-radius:10px;font-size:12px;outline:none;font-family:var(--font);transition:all .2s}
+.topbar-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,92,231,.1)}
+.topbar-search .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--tx3)}
+.topbar-actions{display:flex;gap:6px;align-items:center;margin-left:auto}
+/* ═══ LAYOUT ═══ */
+.app-layout{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;overflow-y:auto;height:calc(100vh - 56px);position:sticky;top:56px}
+.sidebar-section{margin-bottom:8px}
+.sidebar-title{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;padding:8px 10px 6px;margin-bottom:2px}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--tx2);transition:all .15s;font-weight:500}
+.sidebar-item:hover{background:var(--bg3);color:var(--tx)}
+.sidebar-item.active{background:rgba(108,92,231,.1);color:var(--accent2);font-weight:600}
+.sidebar-item .si-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-item .si-count{margin-left:auto;font-size:11px;background:var(--bg4);padding:1px 7px;border-radius:10px;color:var(--tx3);font-weight:600}
+.sidebar-storage{padding:12px;background:var(--bg3);border-radius:10px;margin-top:auto}
+.sidebar-storage .ss-title{font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:8px;display:flex;justify-content:space-between}
+.sidebar-storage .ss-bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.sidebar-storage .ss-fill{height:100%;background:var(--accentG);border-radius:3px;transition:width .5s}
+.sidebar-storage .ss-info{font-size:10px;color:var(--tx3)}
+/* ═══ MAIN CONTENT ═══ */
+.main-content{flex:1;padding:20px;min-width:0;overflow-y:auto;height:calc(100vh - 56px)}
+.breadcrumb{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--tx3);margin-bottom:16px;flex-wrap:wrap}
+.breadcrumb span{cursor:pointer;transition:color .15s;padding:2px 4px;border-radius:4px}.breadcrumb span:hover{color:var(--accent2);background:rgba(108,92,231,.06)}
+.breadcrumb .bc-sep{color:var(--bd);cursor:default;font-size:10px}
+.breadcrumb .bc-sep:hover{background:none;color:var(--bd)}
+.content-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.content-header h2{font-size:18px;font-weight:700}
+.content-actions{display:flex;gap:6px;align-items:center}
+.view-toggle{display:flex;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.view-toggle button{background:none;border:none;color:var(--tx3);padding:6px 10px;cursor:pointer;font-size:14px;transition:all .15s}
+.view-toggle button.active{background:var(--bg4);color:var(--accent2)}
+.sort-select{background:var(--bg3);border:1px solid var(--bd);color:var(--tx);padding:6px 10px;border-radius:8px;font-size:11px;outline:none;font-family:var(--font);cursor:pointer}
+/* ═══ FILE GRID ═══ */
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.file-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.file-card:hover{border-color:var(--accent);box-shadow:var(--glow);transform:translateY(-2px)}
+.file-card.selected{border-color:var(--accent);background:rgba(108,92,231,.05)}
+.file-card .fc-check{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:6px;border:2px solid var(--bd);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:0;transition:opacity .15s}
+.file-card:hover .fc-check,.file-card.selected .fc-check{opacity:1}
+.file-card.selected .fc-check{background:var(--accent);border-color:var(--accent);color:#fff}
+.file-card .fc-icon{font-size:40px;text-align:center;padding:12px 0 8px;display:block}
+.file-card .fc-preview{width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px}
+.file-card .fc-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
+.file-card .fc-meta{font-size:10px;color:var(--tx3);display:flex;justify-content:space-between}
+.file-card .fc-encrypt{position:absolute;top:8px;left:8px;font-size:10px;background:rgba(52,211,153,.15);color:var(--green);padding:2px 6px;border-radius:4px;font-weight:700}
+/* ═══ FILE LIST ═══ */
+.file-list{border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.file-list-header{display:grid;grid-template-columns:24px 1fr 100px 100px 120px 40px;gap:10px;align-items:center;padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--bd);font-size:11px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.file-list-row{display:grid;grid-template-columns:24px 1fr 100px 100px 120px 40px;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;transition:background .15s;cursor:pointer}
+.file-list-row:last-child{border-bottom:none}
+.file-list-row:hover{background:var(--bg3)}
+.file-list-row.selected{background:rgba(108,92,231,.06)}
+.file-list-row .fl-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:all .15s}
+.file-list-row.selected .fl-check{background:var(--accent);border-color:var(--accent);color:#fff}
+.file-list-row .fl-name{display:flex;align-items:center;gap:8px;overflow:hidden}
+.file-list-row .fl-name span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.file-list-row .fl-size,.file-list-row .fl-type{color:var(--tx2);font-size:11px}
+.file-list-row .fl-date{color:var(--tx3);font-size:11px}
+.file-list-row .fl-actions{display:flex;gap:2px}
+/* ═══ EMPTY STATE ═══ */
+.empty-state{text-align:center;padding:60px 20px;animation:fadeIn .5s ease-out}
+.empty-state .es-icon{font-size:64px;margin-bottom:12px;animation:float 3s ease-in-out infinite}
+.empty-state .es-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.empty-state .es-sub{font-size:13px;color:var(--tx3);margin-bottom:20px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.6}
+/* ═══ DROP ZONE ═══ */
+.dropzone-overlay{position:fixed;inset:0;background:rgba(108,92,231,.08);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column}
+.dropzone-overlay.active{display:flex}
+.dropzone-box{border:3px dashed var(--accent);border-radius:24px;padding:60px;text-align:center;animation:glow 2s ease-in-out infinite}
+.dropzone-box .dz-icon{font-size:56px;margin-bottom:12px}
+.dropzone-box .dz-text{font-size:16px;font-weight:700;color:var(--accent2)}
+.dropzone-box .dz-sub{font-size:12px;color:var(--tx3);margin-top:4px}
+/* ═══ UPLOAD PROGRESS ═══ */
+.upload-panel{position:fixed;bottom:20px;right:20px;width:360px;max-width:calc(100vw - 40px);background:var(--glass2);backdrop-filter:blur(20px);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--sh);z-index:250;display:none;overflow:hidden;animation:slideUp .3s ease-out}
+.upload-panel.show{display:block}
+.upload-panel-hd{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd)}
+.upload-panel-hd span{font-size:13px;font-weight:700}
+.upload-panel-body{max-height:240px;overflow-y:auto;padding:8px}
+.upload-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;margin-bottom:4px;transition:background .15s}
+.upload-item:hover{background:var(--bg3)}
+.upload-item .ui-icon{font-size:20px;flex-shrink:0}
+.upload-item .ui-info{flex:1;min-width:0}
+.upload-item .ui-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upload-item .ui-status{font-size:10px;color:var(--tx3);margin-top:2px}
+.upload-item .ui-bar{height:3px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden}
+.upload-item .ui-bar-fill{height:100%;background:var(--accentG);border-radius:2px;transition:width .3s}
+.upload-item .ui-done{color:var(--green);font-size:14px}
+.upload-item .ui-err{color:var(--red);font-size:14px}
+/* ═══ MODALS ═══ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:24px;width:100%;max-width:500px;box-shadow:var(--sh);max-height:85vh;overflow-y:auto;animation:slideUp .3s ease-out}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--bd)}
+/* ═══ CONTEXT MENU ═══ */
+.ctx-menu{position:fixed;background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:4px;box-shadow:var(--sh);z-index:600;min-width:180px;display:none;animation:fadeIn .15s ease-out}
+.ctx-menu.show{display:block}
+.ctx-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--tx);transition:background .1s;font-weight:500}
+.ctx-item:hover{background:var(--bg3)}.ctx-item.danger{color:var(--red)}
+.ctx-sep{height:1px;background:var(--bd);margin:4px 8px}
+/* ═══ TOAST ═══ */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:var(--sh);animation:slideUp .3s ease-out}
+.toast.show{display:block}
+.toast-success{background:var(--green);color:#fff}
+.toast-error{background:var(--red);color:#fff}
+.toast-info{background:var(--accent);color:#fff}
+/* ═══ SPINNER ═══ */
+.spinner{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.2);border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite}
+.spinner-lg{width:32px;height:32px;border-width:3px}
+/* ═══ TAGS ═══ */
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(108,92,231,.1);color:var(--accent2)}
+/* ═══ FILE PREVIEW ═══ */
+.preview-modal .pm-img{max-width:100%;max-height:60vh;border-radius:8px;object-fit:contain;display:block;margin:0 auto}
+.preview-modal .pm-text{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:14px;font-family:'Fira Code',monospace;font-size:12px;max-height:60vh;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.preview-modal .pm-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.preview-modal .pm-kv{font-size:11px;color:var(--tx3)}.pm-kv b{color:var(--tx);font-weight:600}
+/* ═══ SETTINGS TABS ═══ */
+.settings-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--bd);padding-bottom:0}
+.settings-tab{padding:8px 16px;border:none;background:none;color:var(--tx3);font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:var(--font)}
+.settings-tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+.settings-tab:hover{color:var(--tx)}
+.settings-section{display:none}.settings-section.active{display:block}
+.info-box{background:rgba(108,92,231,.06);border:1px solid rgba(108,92,231,.15);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--accent2);line-height:1.7;margin-bottom:14px}
+.warn-box{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--yellow);line-height:1.7;margin-bottom:14px}
+.danger-box{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--red);line-height:1.7;margin-bottom:14px}
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .file-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .file-list-header,.file-list-row{grid-template-columns:24px 1fr 70px 40px;gap:6px}
+  .file-list-header .fl-type,.file-list-row .fl-type,.file-list-header .fl-date,.file-list-row .fl-date{display:none}
+  .topbar-search{max-width:200px}
+  .upload-panel{width:calc(100vw - 20px);right:10px;bottom:10px}
+  .content-header h2{font-size:15px}
+  .auth-box{padding:24px 20px}
+}
+@media(max-width:480px){
+  .topbar{padding:0 12px;gap:8px}
+  .main-content{padding:12px}
+  .file-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SETUP SCREEN ═══════════ -->
+<div id="setup-screen" class="auth-screen" style="display:none">
+  <div class="auth-bg">
+    <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  </div>
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">🔐</span>
+      <div class="auth-logo-title">TeleVault</div>
+      <div class="auth-logo-sub">Encrypted Cloud Storage · Powered by Telegram</div>
+    </div>
+    <div class="step-dots" id="setup-dots">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+
+    <!-- Step 1: Password -->
+    <div id="setup-s1">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">🔑 Create Master Password</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:16px;line-height:1.6">This password encrypts all your files. If lost, your data is <b style="color:var(--red)">unrecoverable</b>.</div>
+      <div class="input-group">
+        <label>Master Password</label>
+        <div class="input-pw"><input type="password" id="setup-pw" class="input" placeholder="Minimum 8 characters"><button class="eye" onclick="togglePW('setup-pw',this)">👁</button></div>
+        <div class="strength-bar"><div class="strength-fill" id="setup-str"></div></div>
+        <div id="setup-str-txt" style="font-size:10px;color:var(--tx3);margin-top:4px"></div>
+      </div>
+      <div class="input-group">
+        <label>Confirm Password</label>
+        <div class="input-pw"><input type="password" id="setup-pw2" class="input" placeholder="Repeat password"><button class="eye" onclick="togglePW('setup-pw2',this)">👁</button></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="setupStep2()">Continue →</button>
+    </div>
+
+    <!-- Step 2: Telegram -->
+    <div id="setup-s2" style="display:none">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">🤖 Telegram Configuration</div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:16px;line-height:1.6">Your files will be stored in a Telegram chat. You need a Bot Token and a Chat/Channel ID.</div>
+      <div class="input-group">
+        <label>Bot Token</label>
+        <div class="input-pw"><input type="password" id="setup-bot" class="input" placeholder="123456:ABCdefGhi..."><button class="eye" onclick="togglePW('setup-bot',this)">👁</button></div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:4px">Get from <a href="https://t.me/BotFather" target="_blank">@BotFather</a> on Telegram</div>
+      </div>
+      <div class="input-group">
+        <label>Storage Chat ID</label>
+        <input id="setup-chat" class="input" placeholder="-100xxxxxxxxxx or your user ID">
+        <div style="font-size:10px;color:var(--tx3);margin-top:4px">Private channel ID (recommended) or your personal chat ID</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="setupBack(1)">← Back</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="setupStep3()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: GitHub (optional) -->
+    <div id="setup-s3" style="display:none">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">📦 Sync Settings <span style="font-size:11px;color:var(--tx3);font-weight:400">(Optional)</span></div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:16px;line-height:1.6">Store encrypted file metadata on GitHub to access your vault from multiple devices.</div>
+      <div class="input-group">
+        <label>GitHub Username</label>
+        <input id="setup-ghu" class="input" placeholder="yourusername">
+      </div>
+      <div class="input-group">
+        <label>Repository Name</label>
+        <input id="setup-ghr" class="input" placeholder="televault-data">
+      </div>
+      <div class="input-group">
+        <label>Personal Access Token (PAT)</label>
+        <div class="input-pw"><input type="password" id="setup-ght" class="input" placeholder="ghp_..."><button class="eye" onclick="togglePW('setup-ght',this)">👁</button></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="setupBack(2)">← Back</button>
+        <button class="btn btn-ghost" onclick="finishSetup(true)" style="flex:1;justify-content:center">Skip (Local Only)</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="finishSetup(false)">🚀 Launch Vault</button>
+      </div>
+    </div>
+
+    <div id="setup-err" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:8px;font-size:12px;color:var(--red)"></div>
+    <div class="auth-footer">🔒 Zero-knowledge encryption · Your password never leaves this device</div>
+  </div>
+</div>
+
+<!-- ═══════════ UNLOCK SCREEN ═══════════ -->
+<div id="unlock-screen" class="auth-screen" style="display:none">
+  <div class="auth-bg">
+    <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  </div>
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">🔐</span>
+      <div class="auth-logo-title">TeleVault</div>
+      <div class="auth-logo-sub">Enter your master password to unlock</div>
+    </div>
+    <div class="input-group">
+      <label>Master Password</label>
+      <div class="input-pw"><input type="password" id="unlock-pw" class="input" placeholder="Your master password" onkeydown="if(event.key==='Enter')doUnlock()"><button class="eye" onclick="togglePW('unlock-pw',this)">👁</button></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" id="unlock-btn" onclick="doUnlock()">🔓 Unlock Vault</button>
+    <div id="unlock-err" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:8px;font-size:12px;color:var(--red)"></div>
+    <div class="auth-divider"></div>
+    <div style="text-align:center">
+      <button class="btn btn-ghost btn-sm" onclick="if(confirm('This will erase ALL vault data. Are you sure?')){localStorage.clear();location.reload()}" style="color:var(--red);border-color:var(--red)">🗑 Reset Vault</button>
+    </div>
+    <div class="auth-footer">🔒 End-to-end encrypted · Files stored on Telegram</div>
+  </div>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app" style="display:none">
+  <div class="topbar">
+    <div class="topbar-logo"><span>🔐</span><span>TeleVault</span></div>
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" placeholder="Search files..." oninput="filterFiles()">
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openUploadModal()" id="upload-btn">⬆ Upload</button>
+      <button class="btn-icon" onclick="openSettings()" title="Settings">⚙️</button>
+      <button class="btn-icon" onclick="toggleTheme()" id="theme-toggle" title="Toggle theme">🌙</button>
+      <button class="btn-icon" onclick="lockVault()" title="Lock vault">🔒</button>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-bottom:6px" onclick="openUploadModal()">⬆ Upload Files</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="openNewFolder()">📁 New Folder</button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Quick Access</div>
+        <div class="sidebar-item active" onclick="navTo('/')" data-folder="/">
+          <span class="si-icon">🏠</span>All Files<span class="si-count" id="count-all">0</span>
+        </div>
+        <div class="sidebar-item" onclick="navTo('__recent')" data-folder="__recent">
+          <span class="si-icon">🕐</span>Recent
+        </div>
+        <div class="sidebar-item" onclick="navTo('__images')" data-folder="__images">
+          <span class="si-icon">🖼️</span>Images<span class="si-count" id="count-img">0</span>
+        </div>
+        <div class="sidebar-item" onclick="navTo('__docs')" data-folder="__docs">
+          <span class="si-icon">📄</span>Documents<span class="si-count" id="count-doc">0</span>
+        </div>
+        <div class="sidebar-item" onclick="navTo('__videos')" data-folder="__videos">
+          <span class="si-icon">🎬</span>Videos<span class="si-count" id="count-vid">0</span>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Folders</div>
+        <div id="folder-list"></div>
+      </div>
+      <div class="sidebar-storage">
+        <div class="ss-title"><span>Storage Used</span><span id="storage-pct">0%</span></div>
+        <div class="ss-bar"><div class="ss-fill" id="storage-fill" style="width:0%"></div></div>
+        <div class="ss-info"><span id="storage-used">0 B</span> of <span id="storage-total">∞ (Telegram)</span></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <div class="content-header">
+        <h2 id="page-title">All Files</h2>
+        <div class="content-actions">
+          <select class="sort-select" id="sort-select" onchange="sortFiles()">
+            <option value="name-asc">Name ↑</option>
+            <option value="name-desc">Name ↓</option>
+            <option value="date-desc" selected>Newest</option>
+            <option value="date-asc">Oldest</option>
+            <option value="size-desc">Largest</option>
+            <option value="size-asc">Smallest</option>
+          </select>
+          <div class="view-toggle">
+            <button class="active" onclick="setView('grid',this)" title="Grid">🔲</button>
+            <button onclick="setView('list',this)" title="List">☰</button>
+          </div>
+        </div>
+      </div>
+      <div id="file-area"></div>
+    </main>
+  </div>
+</div>
+
+<!-- DROP ZONE OVERLAY -->
+<div class="dropzone-overlay" id="dropzone">
+  <div class="dropzone-box">
+    <div class="dz-icon">📥</div>
+    <div class="dz-text">Drop files to encrypt & upload</div>
+    <div class="dz-sub">Files are encrypted before leaving your device</div>
+  </div>
+</div>
+
+<!-- UPLOAD PANEL -->
+<div class="upload-panel" id="upload-panel">
+  <div class="upload-panel-hd">
+    <span>⬆ Uploads <span id="upload-count"></span></span>
+    <button class="btn-icon" style="width:28px;height:28px;font-size:12px" onclick="document.getElementById('upload-panel').classList.remove('show')">✕</button>
+  </div>
+  <div class="upload-panel-body" id="upload-list"></div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" onclick="ctxAction('download')">📥 Download</div>
+  <div class="ctx-item" onclick="ctxAction('preview')">👁 Preview</div>
+  <div class="ctx-item" onclick="ctxAction('rename')">✏️ Rename</div>
+  <div class="ctx-item" onclick="ctxAction('move')">📂 Move to...</div>
+  <div class="ctx-item" onclick="ctxAction('share')">🔗 Share Link</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="ctxAction('delete')">🗑 Delete</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-bg" id="upload-modal">
+  <div class="modal">
+    <div class="modal-title">📤 Upload Files</div>
+    <div style="border:2px dashed var(--bd);border-radius:14px;padding:40px;text-align:center;cursor:pointer;transition:all .2s" id="upload-drop" onclick="document.getElementById('file-input').click()">
+      <div style="font-size:40px;margin-bottom:8px">📁</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Click or drop files here</div>
+      <div style="font-size:12px;color:var(--tx3)">Files are encrypted with AES-256 before upload</div>
+      <input type="file" id="file-input" multiple style="display:none" onchange="handleFileSelect(event)">
+    </div>
+    <div class="input-group" style="margin-top:14px">
+      <label>Upload to Folder</label>
+      <select id="upload-folder" class="input"></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('upload-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW FOLDER MODAL -->
+<div class="modal-bg" id="folder-modal">
+  <div class="modal">
+    <div class="modal-title">📁 New Folder</div>
+    <div class="input-group">
+      <label>Folder Name</label>
+      <input id="new-folder-name" class="input" placeholder="My Folder" onkeydown="if(event.key==='Enter')createFolder()">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('folder-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createFolder()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-bg preview-modal" id="preview-modal">
+  <div class="modal" style="max-width:700px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="modal-title" style="margin:0" id="preview-title">Preview</div>
+      <button class="btn-icon" onclick="closeModal('preview-modal')">✕</button>
+    </div>
+    <div id="preview-content"></div>
+    <div class="pm-info" id="preview-info"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('preview-modal')">Close</button>
+      <button class="btn btn-primary" id="preview-dl" onclick="downloadPreviewFile()">📥 Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settings-modal">
+  <div class="modal" style="max-width:540px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="modal-title" style="margin:0">⚙️ Settings</div>
+      <button class="btn-icon" onclick="closeModal('settings-modal')">✕</button>
+    </div>
+    <div class="settings-tabs">
+      <button class="settings-tab active" onclick="settingsTab('telegram',this)">🤖 Telegram</button>
+      <button class="settings-tab" onclick="settingsTab('github',this)">📦 GitHub Sync</button>
+      <button class="settings-tab" onclick="settingsTab('security',this)">🔒 Security</button>
+      <button class="settings-tab" onclick="settingsTab('about',this)">ℹ️ About</button>
+    </div>
+    <div class="settings-section active" id="settings-telegram">
+      <div class="info-box">Files are sent as encrypted documents to your Telegram chat. Only you (with your password) can decrypt them.</div>
+      <div class="input-group"><label>Bot Token</label><div class="input-pw"><input type="password" id="s-bot" class="input"><button class="eye" onclick="togglePW('s-bot',this)">👁</button></div></div>
+      <div class="input-group"><label>Storage Chat ID</label><input id="s-chat" class="input"></div>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="testTelegram()" style="margin-left:6px">🔌 Test Connection</button>
+      <div id="tg-test-res" style="margin-top:8px;font-size:12px"></div>
+    </div>
+    <div class="settings-section" id="settings-github">
+      <div class="info-box">Sync encrypted metadata to GitHub so you can access your vault from any device. File contents stay on Telegram.</div>
+      <div class="input-group"><label>GitHub Username</label><input id="s-ghu" class="input"></div>
+      <div class="input-group"><label>Repository</label><input id="s-ghr" class="input"></div>
+      <div class="input-group"><label>Personal Access Token</label><div class="input-pw"><input type="password" id="s-ght" class="input"><button class="eye" onclick="togglePW('s-ght',this)">👁</button></div></div>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="syncToGitHub()" style="margin-left:6px">🔄 Sync Now</button>
+      <div id="gh-sync-res" style="margin-top:8px;font-size:12px"></div>
+    </div>
+    <div class="settings-section" id="settings-security">
+      <div class="warn-box">⚠️ Changing your password will re-encrypt the metadata. Existing file chunks on Telegram remain valid as long as you keep the same vault.</div>
+      <div class="input-group"><label>Current Password</label><div class="input-pw"><input type="password" id="s-oldpw" class="input"><button class="eye" onclick="togglePW('s-oldpw',this)">👁</button></div></div>
+      <div class="input-group"><label>New Password</label><div class="input-pw"><input type="password" id="s-newpw" class="input"><button class="eye" onclick="togglePW('s-newpw',this)">👁</button></div></div>
+      <div class="input-group"><label>Confirm New Password</label><input type="password" id="s-newpw2" class="input"></div>
+      <button class="btn btn-primary btn-sm" onclick="changePassword()">🔑 Change Password</button>
+      <div class="auth-divider"></div>
+      <div class="danger-box">⚠️ <b>Danger Zone:</b> Resetting your vault will delete ALL files and metadata permanently.</div>
+      <button class="btn btn-danger btn-sm" onclick="if(confirm('DELETE ALL FILES AND RESET VAULT? This cannot be undone!')){localStorage.clear();location.reload()}">🗑 Reset Entire Vault</button>
+    </div>
+    <div class="settings-section" id="settings-about">
+      <div style="text-align:center;padding:12px">
+        <div style="font-size:40px;margin-bottom:8px">🔐</div>
+        <div style="font-size:18px;font-weight:800;background:var(--accentG);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">TeleVault</div>
+        <div style="font-size:12px;color:var(--tx3);margin:4px 0 12px">Encrypted Cloud Storage v1.0</div>
+        <div style="font-size:12px;color:var(--tx2);line-height:1.8;text-align:left">
+          <b>How it works:</b><br>
+          🔑 Your password derives an AES-256-GCM encryption key<br>
+          🔒 Files encrypted entirely in your browser<br>
+          ☁️ Encrypted blobs stored on Telegram (free, unlimited)<br>
+          📦 File metadata synced via GitHub (optional)<br>
+          🚫 No server, no backend, no tracking<br>
+          ✅ Only you can decrypt your files
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME MODAL -->
+<div class="modal-bg" id="rename-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">✏️ Rename</div>
+    <div class="input-group"><label>New Name</label><input id="rename-input" class="input" onkeydown="if(event.key==='Enter')doRename()"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('rename-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="doRename()">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE MODAL -->
+<div class="modal-bg" id="move-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">📂 Move to Folder</div>
+    <div class="input-group"><label>Select Folder</label><select id="move-folder" class="input"></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('move-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="doMove()">Move</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
